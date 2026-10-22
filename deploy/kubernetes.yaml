@@ -1,0 +1,42 @@
+# mcp-weather on k3s. Create the Secrets first:
+#   kubectl -n mcp create secret generic mcp-weather-env --from-env-file=.env
+#   kubectl -n mcp create secret generic mcp-weather-clients --from-file=clients.yaml=config/clients.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcp-weather
+  namespace: mcp
+  labels: {app: mcp-weather}
+spec:
+  replicas: 1                      # rate limits/caches are per process
+  selector:
+    matchLabels: {app: mcp-weather}
+  template:
+    metadata:
+      labels: {app: mcp-weather}
+    spec:
+      containers:
+        - name: mcp-weather
+          image: ghcr.io/jaknow01/mcp-weather:v0.1.0
+          args: ["serve"]
+          ports: [{containerPort: 8010, name: http}]
+          envFrom: [{secretRef: {name: mcp-weather-env}}]
+          env: [{name: MCP_CLIENTS_CONFIG, value: /config/clients.yaml}]
+          volumeMounts: [{name: clients, mountPath: /config, readOnly: true}]
+          readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 30}
+          resources:
+            requests: {cpu: 20m, memory: 96Mi}
+            limits: {memory: 384Mi}
+      volumes:
+        - name: clients
+          secret: {secretName: mcp-weather-clients}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcp-weather
+  namespace: mcp
+spec:
+  selector: {app: mcp-weather}
+  ports: [{name: http, port: 80, targetPort: http}]

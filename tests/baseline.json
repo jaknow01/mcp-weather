@@ -1,0 +1,62 @@
+{
+  "agent": "weather_agent",
+  "tools": [
+    {
+      "name": "current_weather",
+      "description": "current_weather(city: str = 'Warsaw') -> dict\n\nDescription:\n    This tool is used to get the current weather conditions in a specified city.\n\nParameters:\ncity: str = \"Warsaw\"\n    Name of the city where the weather conditions are to be checked.\n    Unless specified otherwise by the user the default city is Warsaw.\n    Return the city name in nominative form (base form) — do not inflect or decline it.\n\nOutput:\n    JSON object with current weather conditions in a specified place.",
+      "input_schema": {
+        "properties": {
+          "city": {
+            "default": "Warsaw",
+            "title": "City",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      }
+    },
+    {
+      "name": "get_current_date_and_time",
+      "description": "get_current_date_and_time() -> dict\n\nDescription:\n    This tool is used to obtain today's date and current time. It is neccessary\n    to use it before getting the weather forecasts otherwise agent will not be\n    able to process user's request properly when it comes to dates and time.\n\nOutput:\n    JSON object with the current local date, time, weekday and ISO 8601 timestamp.",
+      "input_schema": {
+        "properties": {},
+        "type": "object"
+      }
+    },
+    {
+      "name": "weather_forecast",
+      "description": "weather_forecast(forecast_days: Literal['1', '3', '7'], forecast_type: Literal['hourly', 'daily'], city: str = 'Warsaw') -> dict\n\nImportant:\n\nDescription:\n    This tool is used to check a current weather forecast in a given location.\n    It can be either a short-term (min 3 hours) or a long-term (max 5 days) forecast\n    with different granularity (3h or daily intervals).\n\nParameters:\nforecast_days: Literal[\"1\", \"3\", \"7\"]\n    How long into the future should the forecast reach measured in days.\n\nforecast_type: Literal[\"hourly\", \"daily\"]\n    Time intervals in which the forecast will be divided. When asking for a short-term forecast\n    more granular data obtained with 'hourly' may be more optimal wheras for long-term forecast\n    it usually is better to provide 'daily' intervals.\n\ncity: str = \"Warsaw\"\n    Name of the city where the weather conditions are to be checked.\n    Unless specified otherwise by the user the default city is Warsaw. The city name should be in polish.\n    Return the city name in nominative form (base form) — do not inflect or decline it.\n\nOutput:\n    JSON object with the weather forecast made according to specifications",
+      "input_schema": {
+        "properties": {
+          "forecast_days": {
+            "enum": [
+              "1",
+              "3",
+              "7"
+            ],
+            "title": "Forecast Days",
+            "type": "string"
+          },
+          "forecast_type": {
+            "enum": [
+              "hourly",
+              "daily"
+            ],
+            "title": "Forecast Type",
+            "type": "string"
+          },
+          "city": {
+            "default": "Warsaw",
+            "title": "City",
+            "type": "string"
+          }
+        },
+        "required": [
+          "forecast_days",
+          "forecast_type"
+        ],
+        "type": "object"
+      }
+    }
+  ]
+}
